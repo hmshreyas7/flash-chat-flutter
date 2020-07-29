@@ -79,11 +79,15 @@ class _ChatScreenState extends State<ChatScreen> {
                     onPressed: () {
                       messageTextController.clear();
                       //Implement send functionality.
-                      _firestore.collection('messages').add({
-                        'sender': loggedInUser.email,
-                        'text': messageText,
-                        'created_at': FieldValue.serverTimestamp(),
-                      });
+                      if (messageText != null) {
+                        _firestore.collection('messages').add({
+                          'sender': loggedInUser.email,
+                          'text': messageText,
+                          'created_at': FieldValue.serverTimestamp(),
+                        });
+                        // Reset message text to prevent duplicate sends
+                        messageText = null;
+                      }
                     },
                     child: Text(
                       'Send',
