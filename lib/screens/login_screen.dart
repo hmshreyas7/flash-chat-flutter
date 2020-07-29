@@ -15,6 +15,8 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _auth = FirebaseAuth.instance;
   String email, password;
+  final emailController = TextEditingController(),
+      passwordController = TextEditingController();
   bool showSpinner = false;
 
   @override
@@ -42,6 +44,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 height: 48.0,
               ),
               TextField(
+                controller: emailController,
                 keyboardType: TextInputType.emailAddress,
                 textAlign: TextAlign.center,
                 onChanged: (value) {
@@ -56,6 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 height: 8.0,
               ),
               TextField(
+                controller: passwordController,
                 obscureText: true,
                 textAlign: TextAlign.center,
                 onChanged: (value) {
@@ -84,6 +88,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     if (user != null) {
                       Navigator.pushNamed(context, ChatScreen.id);
+                      emailController.clear();
+                      passwordController.clear();
+                      email = null;
+                      password = null;
                     }
                   } catch (e) {
                     print(e);
