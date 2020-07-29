@@ -5,6 +5,7 @@ import 'package:flash_chat/constants.dart';
 import 'package:flash_chat/components/message_bubble.dart';
 
 final _firestore = Firestore.instance;
+FirebaseUser loggedInUser;
 
 class ChatScreen extends StatefulWidget {
   static const id = '/chat_screen';
@@ -15,7 +16,6 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final _auth = FirebaseAuth.instance;
-  FirebaseUser loggedInUser;
   String messageText;
   final messageTextController = TextEditingController();
 
@@ -82,6 +82,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       _firestore.collection('messages').add({
                         'sender': loggedInUser.email,
                         'text': messageText,
+                        'created_at': FieldValue.serverTimestamp(),
                       });
                     },
                     child: Text(
@@ -103,7 +104,10 @@ class MessageStream extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-      stream: _firestore.collection('messages').snapshots(),
+      stream: _firestore
+          .collection('messages')
+          .orderBy('created_at', descending: true)
+          .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return CircularProgressIndicator(
@@ -112,6 +116,7 @@ class MessageStream extends StatelessWidget {
         }
 
         final messages = snapshot.data.documents;
+        final currentUser = loggedInUser.email;
         List<MessageBubble> messageBubbles = [];
 
         for (var message in messages) {
@@ -119,12 +124,14 @@ class MessageStream extends StatelessWidget {
             MessageBubble(
               messageSender: message.data['sender'],
               messageText: message.data['text'],
+              isMe: currentUser == message.data['sender'],
             ),
           );
         }
 
         return Expanded(
           child: ListView(
+            reverse: true,
             padding: EdgeInsets.all(8.0),
             children: messageBubbles,
           ),
